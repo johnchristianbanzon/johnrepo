@@ -176,8 +176,8 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 		} else {
 			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.red;
 		}
-		QuestionSystemTimer qst = new QuestionSystemTimer ();
-		Invoke("OnEnd", 0.5f);
+		iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
+		Invoke("OnEnd", 1f);
 
 
 	}
@@ -187,11 +187,14 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 		Clear ();
 		answerindex = 1;
 		currentround = currentround + 1;
-		iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
+
 		NextRound (currentround);
 		qc.Returner (delegate {
 			qc.onFinishQuestion = true;
 		}, currentround, correctAnswers);
+		if (currentround == 4) {
+			Clear ();
+		}
 	}
 
 	public void PopulateQuestionList ()

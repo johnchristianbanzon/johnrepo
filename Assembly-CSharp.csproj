@@ -55,17 +55,11 @@
      <Compile Include="Assets\Resources\Prefabs\scrollBallScript.cs" />
      <Compile Include="Assets\Scripts\CSVParser.cs" />
      <Compile Include="Assets\Scripts\ChangeOrderIcon.cs" />
-     <Compile Include="Assets\Scripts\EmptyClass.cs" />
      <Compile Include="Assets\Scripts\IQuestion.cs" />
      <Compile Include="Assets\Scripts\OrderIcon.cs" />
-     <Compile Include="Assets\Scripts\PrefabFactory.cs" />
      <Compile Include="Assets\Scripts\Question.cs" />
      <Compile Include="Assets\Scripts\QuestionController.cs" />
      <Compile Include="Assets\Scripts\QuestionManager.cs" />
-     <Compile Include="Assets\Scripts\QuestionSystemTimer.cs" />
-     <Compile Include="Assets\Scripts\ScrollSnap.cs" />
-     <Compile Include="Assets\Scripts\ScrollSnapRect.cs" />
-     <Compile Include="Assets\Scripts\SelectLetterEvent.cs" />
      <Compile Include="Assets\Scripts\SelectLetterIcon.cs" />
      <Compile Include="Assets\Scripts\SlotMachineIcon.cs" />
      <Compile Include="Assets\Scripts\SlotMachineOnChange.cs" />
