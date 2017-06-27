@@ -4,21 +4,19 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using DG.Tweening;
 
 public class WordChoiceIcon : MonoBehaviour, IQuestion
 {
 	private static int round = 1;
-	private Action<int> onResult;
 	private static List<Question> questionlist = new List<Question> ();
 	private static string questionAnswer;
 	private string questionString;
 	private string questionData = "";
-	private static string[] answerIdentifier = new string[13];
 	private int letterno;
 	public static int answerindex = 1;
 	private string answertemp;
 	private int roundlimit = 3;
-	private string answerwrote;
 	public static int currentround = 1;
 	public GameObject[] indicators = new GameObject[3];
 	public static int correctAnswers;
@@ -46,6 +44,7 @@ public class WordChoiceIcon : MonoBehaviour, IQuestion
 	public void NextRound (int round)
 	{
 		PopulateQuestionList ();
+
 		int randomize;
 		foreach (Question q in questionlist) {
 		}
@@ -85,7 +84,6 @@ public class WordChoiceIcon : MonoBehaviour, IQuestion
 		}
 		int colorindex = 0;
 		for (int i = 0; i < 4; i++) {
-			Debug.Log ("hey");
 			if (inputlist [i].GetComponent<Image> ().color == Color.gray) {
 				colorindex += 1;
 				answerClicked.Add (inputlist [i]);
@@ -97,9 +95,9 @@ public class WordChoiceIcon : MonoBehaviour, IQuestion
 						string answertemp = c.transform.GetChild (0).GetComponent<Text> ().text;
 						if (answerclickindex == 2) {
 							if (answertemp == answer1 || answertemp == answer2) {
-								OnEnd (true);
+								QuestionDoneCallback (true);
 							} else {
-								OnEnd (false);
+								QuestionDoneCallback (false);
 
 							}
 						}
@@ -112,37 +110,56 @@ public class WordChoiceIcon : MonoBehaviour, IQuestion
 		answerClicked.Clear ();
 	}
 
-	public void OnEnd (bool isWin)
+	public void QuestionDoneCallback (bool result)
 	{
-		Debug.Log ("ENDING!");
-		if (isWin) {
+		if (result) {
 			correctAnswers = correctAnswers + 1;
-			indicators [currentround - 1].GetComponent<Image> ().color = Color.blue;
+			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.blue;
+			for (int i = 0; i < answerClicked.Count; i++) {
+				GameObject ballInstantiated = Resources.Load ("Prefabs/scoreBall") as GameObject;
+				Instantiate (ballInstantiated, 
+					answerClicked[i].transform.position, 
+					Quaternion.identity);
+			}
+			indicators[currentround-1].transform.GetChild (0).GetComponent<Text> ().text = "1 GP";
+			indicators[currentround-1].transform.GetChild (0).DOScale (new Vector3 (5, 5, 5), 1.0f);
+			Invoke("TweenCallBack", 1f);
 		} else {
-			indicators [currentround - 1].GetComponent<Image> ().color = Color.red;
-			iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
+			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.red;
+			for (int i = 0; i < inputlist.Count; i++) {
+				//inputlist [i].transform.GetChild (0).GetComponent<Text> ().text = questionAnswer [i].ToString().ToUpper();
+				if (answer1 == inputlist [i].transform.GetChild (0).GetComponent<Text> ().text ||
+				    answer2 == inputlist [i].transform.GetChild (0).GetComponent<Text> ().text) {
+					inputlist [i].GetComponent<Image> ().color = Color.red;
+					//inputlist [i].transform.GetChild(0).GetComponent<Text> ().color = Color.white;
+				} else {
+					inputlist [i].GetComponent<Image> ().color = Color.white;
+				}
+			}
 		}
+		iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
+		Invoke("OnEnd", 1f);
+	}
+
+	public void TweenCallBack(){
+		indicators[currentround-1].
+		transform.GetChild (0).DOScale (new Vector3(1,1,1),1.0f);
+		indicators[currentround-1].
+		transform.GetChild (0).GetComponent<Text> ().text = " ";
+	}
+
+	public void OnEnd(){
+		QuestionController qc = new QuestionController ();
 		Clear ();
 		answerindex = 1;
 		currentround = currentround + 1;
-		QuestionDoneCallback (true);
-	}
-
-	public void QuestionDoneCallback (bool result)
-	{
-		QuestionController qc = new QuestionController ();
-		qc.Returner (
-			delegate {
-				qc.onFinishQuestion = true;
-				if (result) {
-					if (currentround > roundlimit) {
-						questionModal.SetActive (false);
-					} else {
-						NextRound (currentround);
-					}
-				}
-			}, currentround, correctAnswers
-		);
+		NextRound (currentround);
+		qc.Returner (delegate {
+			qc.onFinishQuestion = true;
+		}, currentround, correctAnswers);
+		if (currentround == 4) {
+			Clear ();
+		}
 	}
 
 	public void PopulateQuestionList ()

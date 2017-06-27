@@ -4,7 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-
+using DG.Tweening;
 public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 	private static int round = 1;
 	private Action<int> onResult;
@@ -29,7 +29,7 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 	public void Activate(GameObject entity,float timeduration,Action<int> Result){
 		round = 1;
 		currentround = 1;
-		correctAnswers = 1;
+		correctAnswers = 0;
 		NextRound (round);
 		QuestionController qc = new QuestionController ();
 		qc.OnResult = Result;
@@ -63,9 +63,7 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 				transform.GetChild (0).GetChild (0).transform, false);
 			input.name = "input" + (i + 1);
 			input.GetComponent<Button>().onClick.AddListener (() => {
-				//this.InputOnClick();
-				GameObject.Find("ChangeOrderModal").GetComponent<ChangeOrderIcon>().InputOnClick();
-				//GameObject.Find("SelectLetterIcon").GetComponent<SelectLetterEvent>().AnswerOnClick();
+				questionModal.GetComponent<ChangeOrderIcon>().InputOnClick();
 			});
 			inputlist.Add(input);
 			input.transform.GetChild (0).GetComponent<Text> ().text = "";
@@ -75,7 +73,7 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 				transform.GetChild (0).GetChild (0).transform, false);
 			output.name = "output" + (i + 1);
 			output.GetComponent<Button>().onClick.AddListener (() => {
-				GameObject.Find("ChangeOrderModal").GetComponent<ChangeOrderIcon>().OutputOnClick();
+				questionModal.GetComponent<ChangeOrderIcon>().OutputOnClick();
 			});
 			outputlist.Add(output);
 
@@ -85,6 +83,22 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 		questionModal.transform.GetChild (0).GetComponent<Text> ().text = questionString;
 
 	}
+
+	public void OnEnd(){
+		QuestionController qc = new QuestionController ();
+		Clear ();
+		answerindex = 1;
+		currentround = currentround + 1;
+
+		NextRound (currentround);
+		qc.Returner (delegate {
+			qc.onFinishQuestion = true;
+		}, currentround, correctAnswers);
+		if (currentround == 4) {
+			Clear ();
+		}
+	}
+
 	public void InputOnClick(){
 		if (EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text == "") {
 			iTween.ShakePosition(EventSystem.current.currentSelectedGameObject, new Vector3(10,10,10), 0.5f);
@@ -112,21 +126,14 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 			if (answerwrote.Length == questionAnswer.Length) {
 				
 				if (answerwrote.ToUpper () == questionAnswer.ToUpper ()) {
-					correctAnswers = correctAnswers + 1;
-					indicators[currentround-1].GetComponent<Image> ().color = Color.blue;
-
+					QuestionDoneCallback (true);
 				} else {
-					indicators[currentround-1].GetComponent<Image> ().color = Color.red;
-					iTween.ShakePosition(questionModal, new Vector3(10,10,10), 0.5f);
+					QuestionDoneCallback (false);
 				}
-
-				Clear ();
-				answerindex = 1;
-				currentround = currentround + 1;
-				QuestionDoneCallback (true);
 			}
 		}
 	}
+		
 	public void OutputOnClick(){
 		string answerclicked = "";
 		if (EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text == "") {
@@ -137,29 +144,40 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 					answerclicked = outputlist [i-1].transform.GetChild (0).GetComponent<Text> ().text;
 					outputlist [i - 1].transform.GetChild (0).GetComponent<Text> ().text = "";
 					GameObject.Find (answerIdentifier [i-1]).transform.GetChild (0).GetComponent<Text> ().text = answerclicked;
-					Debug.Log (answerIdentifier [i - 1]);
 				}
-
 			}
-
 		}
 	}
+	public void QuestionDoneCallback (bool result)
+	{
+		if (result) {
+			correctAnswers = correctAnswers + 1;
+			indicators[currentround-1].GetComponent<Image> ().color = Color.blue;
+			for (int i = 0; i < questionAnswer.Length; i++) {
+				GameObject ballInstantiated = Resources.Load ("Prefabs/scoreBall") as GameObject;
+				Instantiate (ballInstantiated, 
+					outputlist [i].transform.position, 
+					Quaternion.identity);
+			}
+			indicators[currentround-1].transform.GetChild (0).GetComponent<Text> ().text = "1 GP";
+			indicators[currentround-1].transform.GetChild (0).DOScale (new Vector3 (5, 5, 5), 1.0f);
+			Invoke("TweenCallBack", 1f);
 
-	public void QuestionDoneCallback(bool result){
-		QuestionController qc = new QuestionController ();
-		qc.Returner (
-			delegate {
-				qc.onFinishQuestion =true;
-				if (result) {
-					if(currentround>roundlimit){
-						questionModal.SetActive(false);
-					}
-					else{
-						NextRound (currentround);
-					}
-				}
-			},currentround,correctAnswers
-		);
+		} else {
+			indicators[currentround-1].GetComponent<Image> ().color = Color.red;
+			for (int i = 0; i < questionAnswer.Length; i++) {
+				outputlist [i].transform.GetChild (0).GetComponent<Text> ().text = questionAnswer [i].ToString().ToUpper();
+				outputlist [i].GetComponent<Image> ().color = Color.green;
+			}
+		}
+		iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
+		Invoke("OnEnd", 1f);
+	}
+	public void TweenCallBack(){
+		indicators[currentround-1].
+		transform.GetChild (0).DOScale (new Vector3(1,1,1),1.0f);
+		indicators[currentround-1].
+		transform.GetChild (0).GetComponent<Text> ().text = " ";
 	}
 	public void PopulateQuestionList(){
 
@@ -170,11 +188,7 @@ public class ChangeOrderIcon : MonoBehaviour, IQuestion{
 
 			questionData = splitter [0];
 			answerData = splitter [1];
-			if ((i % 2)==0) {
 				questionlist.Add (new Question (questionData, answerData, 0));
-
-			}
-
 			i+=1;
 		}
 	}

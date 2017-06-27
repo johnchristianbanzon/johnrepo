@@ -4,20 +4,19 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using DG.Tweening;
 
 public class TypingIcon : MonoBehaviour, IQuestion{
-	private static int round = 1;
-	private Action<int> onResult;
 	private static List<Question> questionlist = new List<Question> ();
 	private static string questionAnswer;
 	private string questionString;
 	private string questionData = "";
 	private static string[] answerIdentifier = new string[13];
-	private int letterno;
 	public static int answerindex = 1;
 	private int roundlimit = 3;
 	private string answerwrote;
 	public static int currentround = 1;
+	private bool clickable = true;
 	public GameObject[] indicators = new GameObject[3];
 	public static int correctAnswers;
 	private string answerData = "";
@@ -25,10 +24,11 @@ public class TypingIcon : MonoBehaviour, IQuestion{
 	private static List<GameObject> inputlist = new List<GameObject>();
 	private static List<GameObject> outputlist = new List<GameObject>();
 	private static List<string> questionsDone = new List<string>();
+
 	public void Activate(GameObject entity,float timeduration,Action<int> Result){
-		round = 1;
 		currentround = 1;
-		NextRound (round);
+		correctAnswers = 0;
+		NextRound (currentround);
 		QuestionController qc = new QuestionController ();
 		qc.OnResult = Result;
 	}
@@ -46,8 +46,6 @@ public class TypingIcon : MonoBehaviour, IQuestion{
 				break;
 			}
 		} 
-
-
 		questionsDone.Add (questionString);
 		GameObject questionInput = Resources.Load ("Prefabs/inputContainer") as GameObject;
 		questionModal = GameObject.Find("TypingModal");
@@ -66,12 +64,11 @@ public class TypingIcon : MonoBehaviour, IQuestion{
 			output.transform.GetChild (0).GetComponent<Text> ().text = "";
 		}
 		questionModal.transform.GetChild (0).GetComponent<Text> ().text = questionString;
-
-
 	}
 
 	public void InputOnClick(){
-		if (EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text == "") {
+		if (!clickable) {
+			iTween.ShakePosition(EventSystem.current.currentSelectedGameObject, new Vector3(10,10,10), 0.5f);
 		} 
 		else {
 			answerwrote = "";
@@ -95,48 +92,68 @@ public class TypingIcon : MonoBehaviour, IQuestion{
 			if (answerwrote.Length == questionAnswer.Length) {
 
 				if (answerwrote.ToUpper () == questionAnswer.ToUpper ()) {
-					correctAnswers = correctAnswers + 1;
-					Debug.Log (currentround-1);
-					indicators[currentround-1].GetComponent<Image> ().color = Color.blue;
+					QuestionDoneCallback (true);
 				} else {
-					indicators[currentround-1].GetComponent<Image> ().color = Color.red;
-					iTween.ShakePosition(questionModal, new Vector3(10,10,10), 0.5f);
+					QuestionDoneCallback (false);
 				}
-
-				Clear ();
-				answerindex = 1;
-				currentround = currentround + 1;
-				QuestionDoneCallback (true);
 			}
 		}
 	}
+	public void QuestionDoneCallback (bool result)
+	{
+		if (result) {
+			correctAnswers = correctAnswers + 1;
+			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.blue;
+			for (int i = 0; i < questionAnswer.Length; i++) {
+				GameObject ballInstantiated = Resources.Load ("Prefabs/scoreBall") as GameObject;
+				Instantiate (ballInstantiated, 
+					outputlist [i].transform.position, 
+					Quaternion.identity);
+			}
+			indicators[currentround-1].transform.GetChild (0).GetComponent<Text> ().text = "1 GP";
+			indicators[currentround-1].transform.GetChild (0).DOScale (new Vector3 (5, 5, 5), 1.0f);
+			Invoke("TweenCallBack", 1f);
+		} else {
+			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.red;
+			for (int i = 0; i < questionAnswer.Length; i++) {
+				outputlist [i].transform.GetChild (0).GetComponent<Text> ().text = questionAnswer [i].ToString().ToUpper();
+				outputlist [i].GetComponent<Image> ().color = Color.green;
+			}
+		}
+		iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
+		clickable = false;
+		Invoke("OnEnd", 1f);
+	}
+
+	public void TweenCallBack(){
+		indicators[currentround-1].
+		transform.GetChild (0).DOScale (new Vector3(1,1,1),1.0f);
+		indicators[currentround-1].
+		transform.GetChild (0).GetComponent<Text> ().text = " ";
+	}
+
+	public void OnEnd(){
+		QuestionController qc = new QuestionController ();
+		Clear ();
+		answerindex = 1;
+		currentround = currentround + 1;
+
+		NextRound (currentround);
+		qc.Returner (delegate {
+			qc.onFinishQuestion = true;
+		}, currentround, correctAnswers);
+		if (currentround > roundlimit) {
+			Clear ();
+		}
+		clickable = true;
+	}
+
 	public void OutputOnClick(){
-		string answerclicked = "";
 		if (EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text == "") {
-			
+			iTween.ShakePosition(EventSystem.current.currentSelectedGameObject, new Vector3(10,10,10), 0.5f);
 		} else {
 			EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text = "";
 		}
-	}
-
-	public void QuestionDoneCallback(bool result){
-		QuestionController qc = new QuestionController ();
-		qc.Returner (
-			delegate {
-				qc.onFinishQuestion =true;
-				if (result) {
-					if(currentround>roundlimit){
-						for(int i = 1;i<=3;i++){
-							GameObject.Find ("Indicator" + i).GetComponent<Image> ().color = Color.white;
-						}
-						questionModal.SetActive(false);
-					}
-					else{
-						NextRound (currentround);
-					}
-				}
-			},currentround,correctAnswers
-		);
 	}
 	public void PopulateQuestionList(){
 		
@@ -144,14 +161,9 @@ public class TypingIcon : MonoBehaviour, IQuestion{
 		int i = 0;
 		foreach(string questions in databundle ){
 			string[] splitter = databundle[i].Split (']');	
-
 			questionData = splitter [0];
 			answerData = splitter [1];
-			//if ((i % 2)==0) {
 				questionlist.Add (new Question (questionData, answerData, 0));
-
-			//}
-
 			i+=1;
 		}
 	}

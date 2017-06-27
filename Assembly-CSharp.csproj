@@ -60,6 +60,7 @@
      <Compile Include="Assets\Scripts\Question.cs" />
      <Compile Include="Assets\Scripts\QuestionController.cs" />
      <Compile Include="Assets\Scripts\QuestionManager.cs" />
+     <Compile Include="Assets\Scripts\ScrollingSnap.cs" />
      <Compile Include="Assets\Scripts\SelectLetterIcon.cs" />
      <Compile Include="Assets\Scripts\SlotMachineIcon.cs" />
      <Compile Include="Assets\Scripts\SlotMachineOnChange.cs" />
@@ -68,6 +69,7 @@
      <Compile Include="Assets\Scripts\WordChoiceIcon.cs" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_eye.shader" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
+     <None Include="Assets\DOTween\DOTween43.xml" />
      <None Include="Assets\Resources\Art\UnityChan\license.txt" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_fuku_ds.shader" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_eye_blend.shader" />
@@ -76,9 +78,12 @@
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_hair.shader" />
      <None Include="Assets\Resources\Art\UnityChan\Stage\Shader\AlphaMask.shader" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_eyelash_blend.shader" />
+     <None Include="Assets\DOTween\DOTween50.xml" />
      <None Include="Assets\Plugins\Pixelplacement\iTween\ReadMe!\ReadMe!.txt" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_hada.shader" />
+     <None Include="Assets\DOTween\readme.txt" />
      <None Include="Assets\Resources\Art\UnityChan\Models\UnityChanShader\Shader\Unitychan_chara_hada_blend.shader" />
+     <None Include="Assets\DOTween\DOTween46.xml" />
  <Reference Include="UnityEngine.Analytics">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
  </Reference>
@@ -96,6 +101,18 @@
  </Reference>
  <Reference Include="UnityEngine.VR">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTween">
+ <HintPath>/Users/frecre/samplefre/Assets/DOTween/DOTween.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTween46">
+ <HintPath>/Users/frecre/samplefre/Assets/DOTween/DOTween46.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTween43">
+ <HintPath>/Users/frecre/samplefre/Assets/DOTween/DOTween43.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTween50">
+ <HintPath>/Users/frecre/samplefre/Assets/DOTween/DOTween50.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>

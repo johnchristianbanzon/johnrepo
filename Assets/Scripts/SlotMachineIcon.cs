@@ -5,6 +5,7 @@ using System;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+
 public class SlotMachineIcon : MonoBehaviour, IQuestion{
 	private static int round = 1;
 	private Action<int> onResult;
@@ -12,11 +13,8 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 	private static string questionAnswer;
 	private string questionString;
 	private string questionData = "";
-	private static string[] answerIdentifier = new string[13];
 	private int letterno;
-	public static int answerindex = 1;
 	private int roundlimit = 3;
-	private static bool stoptimer = false;
 	private bool isSynonym = true;
 	public static int currentround = 1;
 	private string synonymData = "";
@@ -24,7 +22,6 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 	public GameObject[] indicators = new GameObject[3];
 	public static int correctAnswers;
 	private int numberOfRoulletes = 6;
-	private string answerData = "";
 	private static GameObject questionModal;
 	private static List<GameObject> roulletes = new List<GameObject>();
 	private static int randomnum = 0;
@@ -32,7 +29,6 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 	private static List<string> questionsDone = new List<string>();
 	private List<GameObject> roulleteText = new List<GameObject>();
 	private static bool instantiateDone = false;
-	private static bool gotAnswer = true;
 	private static GameObject ballInstantiated;
 
 	public float bulletSpeed = 1f;
@@ -41,20 +37,6 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 	public string answerwrote {
 		get;
 		set;
-	}
-	private static int timeLeft;
-	private void StartTimer(){
-		if (stoptimer) {
-			if (timeLeft > 0) {
-				timeLeft--;
-			} else {
-				answerindex = 1;
-				currentround = currentround + 1;
-				QuestionDoneCallback (true);
-				stoptimer = false;
-				CancelInvoke ("StartTimer");
-			}
-		}
 	}
 
 	public void Activate(GameObject entity,float timeduration,Action<int> Result){
@@ -65,15 +47,11 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 		NextRound (round);
 		QuestionController qc = new QuestionController ();
 		qc.OnResult = Result;
-		//InvokeRepeating("StartTimer", 0, 1);
+
 	}
-	void Start(){
-		
-	}
+
 	public void NextRound(int round){
-		gotAnswer = true;
-		stoptimer = false;
-		Debug.Log (instantiateDone);
+
 		for (int i = 0; i < numberOfRoulletes; i++) {
 			if (!instantiateDone) {
 				roulletes.Add(GameObject.Find ("Roullete" + (i + 1)));
@@ -98,6 +76,7 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 				break;
 			}
 		} 
+
 		questionsDone.Add (questionString);
 		findSlotMachines ();
 		questionModal = GameObject.Find("SlotMachineModal");
@@ -127,8 +106,6 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 		}
 	}
 
-
-
 	public void QuestionDoneCallback(bool result){
 		QuestionController qc = new QuestionController ();
 		qc.Returner (
@@ -153,25 +130,28 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 	public void getAnswer(string ans){
 		if (questionAnswer == ans) {
 			correctAnswerGot ();
+			SlotMachineOnChange smoc = new SlotMachineOnChange ();
+			smoc.ClearAnswers ();
 		}
 
 	}
 	public void correctAnswerGot(){
 		
-		if (gotAnswer) {
 			iTween.ShakePosition(questionModal, new Vector3(10,10,10), 0.5f);
 			correctAnswers = correctAnswers + 1;
-			for (int i = 0; i < questionAnswer.Length; i++) {
-				ballInstantiated = Resources.Load ("Prefabs/scoreBall") as GameObject;
-				Instantiate (ballInstantiated, 
-					roulletes [i].transform.position, 
-					Quaternion.identity);
-			}
-			GameObject.Find ("Indicator"+currentround).GetComponent<Image> ().color = Color.blue;
-			stoptimer = true;
-			timeLeft = 2;
-			gotAnswer = false;
+		for (int i = 0; i < questionAnswer.Length; i++) {
+			ballInstantiated = Resources.Load ("Prefabs/scoreBall") as GameObject;
+			Instantiate (ballInstantiated, 
+				roulletes [i].transform.position, 
+				Quaternion.identity);
 		}
+			GameObject.Find ("Indicator"+currentround).GetComponent<Image> ().color = Color.blue;
+			correctAnswers = correctAnswers + 1;
+			currentround += 1;
+			QuestionDoneCallback (true);
+		
+
+		
 
 	}
 
@@ -222,8 +202,6 @@ public class SlotMachineIcon : MonoBehaviour, IQuestion{
 		}
 	}
 	public void Clear(){
-		answerindex = 1;
-
 		questionModal.transform.GetChild (0).GetComponent<Text> ().text = "";
 	}
 }

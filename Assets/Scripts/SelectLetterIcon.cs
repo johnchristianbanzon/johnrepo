@@ -6,51 +6,34 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Net;
 using System.IO;
+using DG.Tweening;
 
 public class SelectLetterIcon : MonoBehaviour, IQuestion
 {
-
-	private Action<int> onResult;
 	private string questionData = "";
 	private string answerData = "";
-	//private int selectionlistcount = 13;
 	private GameObject[] answerlist = new GameObject[13];
 	private GameObject[] selectionlist = new GameObject[13];
 	public static List<Question> questionlist;
 	private static List<string> questionsDone = new List<string> ();
-	public float timeDuration;
 	private static int round = 1;
 	private int letterno;
-	public static int lettercount = 12;
 	private GameObject[] selectionButtons = new GameObject[13];
 	private GameObject[] inputButtons = new GameObject[13];
-	public int currentround = 1;
+	private static int currentround = 1;
 	public static int answerindex = 1;
 	public List<string> answerIdentifier;
 	public string answerwrote;
 	public static string questionAnswer;
 	public static string questionString;
-	public static float timeLeft;
 	public static int correctAnswers;
-	private Action<bool> timerResult;
 	private static GameObject questionModal;
-	private int roundsLimit = 3;
-	//Properties
-	/*
-	public string QuestionAnswer{
-		get{ 
-			return questionAnswer;
-		}
-	}
-	public List<string> QuestionsDone{
-		get{ return questionsDone; 
-		}
-		set{ questionsDone = value;
-		}
-	}*/
+	public GameObject[] indicators = new GameObject[3];
 	public void Activate (GameObject entity, float timeduration, Action<int> Result)
 	{
 		round = 1;
+		currentround = 1;
+		correctAnswers = 0;
 		NextRound (round);
 		QuestionController qc = new QuestionController ();
 		qc.OnResult = Result;
@@ -58,8 +41,9 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 
 	public void NextRound (int round)
 	{
-
-		//		Debug.Log (GetCSV("https://docs.google.com/spreadsheets/d/19cKJ0YqMbNQWQmW_ZuEj4h9AHeyC_-H899MRE1F3rkw/edit#gid=0"));
+		foreach (Transform child in GameObject.Find("QuestionModalContent").transform) {
+			GameObject.Destroy(child.gameObject);
+		}
 		questionlist = new List<Question> ();
 
 		PopulateQuestionList ();
@@ -96,10 +80,10 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 
 	public void AnswerOnClick ()
 	{
+		Debug.Log (EventSystem.current.currentSelectedGameObject);
 		string answerclicked = "";
-		answerindex = 1;
+
 		if (EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text == "") {
-			//CODE FOR CLICKING ON EMPTY
 			iTween.ShakePosition (EventSystem.current.currentSelectedGameObject, new Vector3 (10, 10, 10), 0.5f);
 		} else {
 			for (int i = 1; i < selectionButtons.Length + 1; i++) {
@@ -117,16 +101,14 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 				} 
 			}
 		}
-
 	}
 
 	public void LetterOnClick ()
 	{
 		if (EventSystem.current.currentSelectedGameObject.transform.GetChild (0).GetComponent<Text> ().text == "") {
-			iTween.ShakePosition (EventSystem.current.currentSelectedGameObject, new Vector3 (10, 10, 10), 0.5f);
+			//iTween.ShakePosition (EventSystem.current.currentSelectedGameObject, new Vector3 (10, 10, 10), 0.5f);
+			EventSystem.current.currentSelectedGameObject.transform.DOShakePosition(0.2f, 30.0f, 50, 0f, true);
 		} else {
-			//SelectLetterIcon sli = new SelectLetterIcon ();
-
 			for (int i = 0; i < selectionButtons.Length - 1; i++) {
 				selectionButtons [i] = GameObject.Find ("Letter" + (i + 1));
 				if (i <= inputButtons.Length) {
@@ -166,28 +148,38 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 	{
 		if (result) {
 			correctAnswers = correctAnswers + 1;
-			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.blue;
+			indicators[currentround-1].GetComponent<Image> ().color = Color.blue;
 			for (int i = 0; i < questionAnswer.Length; i++) {
 				GameObject ballInstantiated = Resources.Load ("Prefabs/scoreBall") as GameObject;
 				Instantiate (ballInstantiated, 
 					inputButtons [i].transform.position, 
 					Quaternion.identity);
 			}
+			indicators[currentround-1].transform.GetChild (0).GetComponent<Text> ().text = "1 GP";
+			indicators[currentround-1].transform.GetChild (0).DOScale (new Vector3 (5, 5, 5), 1.0f);
+			Invoke("TweenCallBack", 1f);
+
 		} else {
-			GameObject.Find ("Indicator" + currentround).GetComponent<Image> ().color = Color.red;
+			indicators[currentround-1].GetComponent<Image> ().color = Color.red;
+			for (int i = 0; i < questionAnswer.Length; i++) {
+				inputButtons [i].transform.GetChild (0).GetComponent<Text> ().text = questionAnswer [i].ToString().ToUpper();
+				inputButtons [i].GetComponent<Image> ().color = Color.green;
+			}
 		}
 		iTween.ShakePosition (questionModal, new Vector3 (10, 10, 10), 0.5f);
 		Invoke("OnEnd", 1f);
-
-
 	}
-
+	public void TweenCallBack(){
+		indicators[currentround-1].
+		transform.GetChild (0).DOScale (new Vector3(1,1,1),1.0f);
+		indicators[currentround-1].
+		transform.GetChild (0).GetComponent<Text> ().text = " ";
+	}
 	public void OnEnd(){
 		QuestionController qc = new QuestionController ();
 		Clear ();
 		answerindex = 1;
 		currentround = currentround + 1;
-
 		NextRound (currentround);
 		qc.Returner (delegate {
 			qc.onFinishQuestion = true;
@@ -204,7 +196,6 @@ public class SelectLetterIcon : MonoBehaviour, IQuestion
 		int i = 0;
 		foreach (string questions in databundle) {
 			string[] splitter = databundle [i].Split (']');	
-
 			questionData = splitter [0];
 			answerData = splitter [1];
 			questionlist.Add (new Question (questionData, answerData, 0));

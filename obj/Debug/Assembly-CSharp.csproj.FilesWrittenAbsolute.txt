@@ -21,3 +21,7 @@
 /Users/frecre/samplefre/obj/Debug/Assembly-CSharp.dll.mdb
 /Users/frecre/samplefre/Temp/bin/Debug/Assembly-CSharp-firstpass.dll
 /Users/frecre/samplefre/Temp/bin/Debug/Assembly-CSharp-firstpass.dll.mdb
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween46.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween43.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween50.dll

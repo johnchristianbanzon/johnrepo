@@ -19,3 +19,7 @@
 /Users/frecre/samplefre/Temp/bin/Debug/Unity.CecilTools.dll
 /Users/frecre/samplefre/Temp/bin/Debug/Mono.Cecil.Pdb.dll
 /Users/frecre/samplefre/Temp/bin/Debug/Mono.Cecil.Mdb.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween46.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween43.dll
+/Users/frecre/samplefre/Temp/bin/Debug/DOTween50.dll
